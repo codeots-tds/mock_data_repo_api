@@ -1,0 +1,4 @@
+.env
+personal_notes.md
+*.csv
+*.txt

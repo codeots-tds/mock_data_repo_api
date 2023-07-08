@@ -1,0 +1,70 @@
+from flask import Flask, request, jsonify, Response, session
+import pandas as pd
+import os
+
+app = Flask(__name__)
+from datasets_repo import data_repo
+from transform_data import Transform_Mock_Data
+from filter_data import Filter_Data
+
+from dotenv import load_dotenv
+load_dotenv()
+
+selected_dataset = None
+app.secret_key = os.getenv('SECRET_KEY')  # Replace this with a real secret key!
+
+
+@app.route('/home/', methods =["GET"])
+def get_all_files():
+    return jsonify(data_repo.list_of_datasets)
+
+@app.route('/select_dataset', methods = ["POST"])
+def select_dataset():
+    global selected_dataset
+    data = request.get_json()
+    dataset_name = data.get('dataset_name')
+    selected_dataset = data_repo.select_datafile(dataset_name)
+    print('dataset found------')
+    try:
+        loaded_selected_dataset = data_repo.load_selected_datafile()
+        print('dataset loaded-------')
+    except Exception as e:
+        print(f"Exception while loading data file: {e}")
+        return jsonify({"error": str(e)}), 500
+    transformed_df = Transform_Mock_Data(data = loaded_selected_dataset)
+    transformed_data = transformed_df.parse_year()
+
+    transformed_data_filename = f"transformed_{dataset_name}"
+    transformed_data.to_csv(transformed_data_filename, index=False)
+    # Store in session. session objects can only store data in str, int, json format, not complex objects like dataframes
+    session['selected_dataset'] = transformed_data_filename
+    return jsonify({"message" : "Dataset loaded successfully", "dataset_name": dataset_name})
+
+
+@app.route('/select_years', methods = ["POST"])
+def filter_years():
+    global selected_dataset
+    year_data = request.get_json()['years']
+    selected_dataset_filename = session.get('selected_dataset')
+    print(session)  # Debug: print the session data
+    # year_data = list(year_data.values())
+    if selected_dataset_filename is None:
+        return jsonify({'error': 'No dataset selected'}), 400
+    try:
+        selected_dataset = pd.read_csv(selected_dataset_filename)  # Load the DataFrame from the file
+    except FileNotFoundError:
+        return jsonify({'error': 'Dataset not found'}), 400
+    filtered_data = Filter_Data(selected_dataset = selected_dataset)
+    if len(year_data) == 2:
+        filtered_year_df = filtered_data.filter_by_year(year_data[0], year_data[1])
+    elif len(year_data) == 1:
+        filtered_year_df = filtered_data.filter_by_year(year_data[0], None)
+    else:
+        print('Error, invalid entry')
+        return jsonify({'error': 'Invalid entry'})
+    return jsonify(filtered_year_df.to_dict(orient='records'))
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+    pass
