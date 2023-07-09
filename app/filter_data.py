@@ -13,6 +13,9 @@ class Filter_Data:
             self.selected_data = self.selected_data[(self.selected_data['year'] == year1)]
         return self.selected_data
 
+    def filter_by_zipcode(self, zipcodes = list):
+        self.selected_data = self.selected_data[self.selected_data['zipcode'].isin(zipcodes)]
+        return self.selected_data
 
 
 if __name__ == '__main__':
