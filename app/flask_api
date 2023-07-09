@@ -32,8 +32,8 @@ def select_dataset():
         print(f"Exception while loading data file: {e}")
         return jsonify({"error": str(e)}), 500
     transformed_df = Transform_Mock_Data(data = loaded_selected_dataset)
-    transformed_data = transformed_df.parse_year()
     transformed_data = transformed_df.cols_to_lower()
+    transformed_data = transformed_df.parse_year()
     transformed_data = transformed_df.convert_col_types()
 
     transformed_data_filename = f"transformed_{dataset_name}"

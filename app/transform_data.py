@@ -6,8 +6,11 @@ class Transform_Mock_Data:
         self.selected_dataset = kwargs.get('data')
 
     def parse_year(self):
-        self.selected_dataset['year'] = pd.to_datetime(self.selected_dataset['DateOfBite'])
-        self.selected_dataset['year'] = self.selected_dataset['year'].dt.year
+        date_cols = ['dateofbite', 'inspection date', 'date_of_interest']
+        for col in date_cols:
+            if col in list(self.selected_dataset.columns):
+                self.selected_dataset[col] = pd.to_datetime(self.selected_dataset[col])
+                self.selected_dataset['year'] = self.selected_dataset[col].dt.year
         return self.selected_dataset
     
     def cols_to_lower(self):
