@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify, Response, session
+from flask_cors import CORS
 import pandas as pd
 import os
 
-app = Flask(__name__)
 from datasets_repo import data_repo
 from transform_data import Transform_Mock_Data
 from filter_data import Filter_Data
@@ -10,6 +10,9 @@ from filter_data import Filter_Data
 from dotenv import load_dotenv
 load_dotenv()
 
+
+app = Flask(__name__)
+CORS(app)
 selected_dataset = None
 app.secret_key = os.getenv('SECRET_KEY')  # Replace this with a real secret key!
 
