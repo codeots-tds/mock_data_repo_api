@@ -1,0 +1,7 @@
+theme: "bootstrap-bp-startpage"
+welcomeText = "Data Repository"
+startPageColumns = true
+
+baseURL: "http://localhost:1313/"
+languageCode: "en-us"
+title: "Data Repository API"
