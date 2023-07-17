@@ -19,10 +19,12 @@
             <div id = 'years' class = 'input-group'>
                 <input id="yearStart" type="number" placeholder="Start Year" min="1900" max="2099" step="1" />
                 <input id="yearEnd" type="number" placeholder="End Year" min="1900" max="2099" step="1" />
+                <button type="button" id="filterByYearButton">Filter by Year</button>
             </div>
 
             <div id = 'zipcodes' class = 'input-group'>
                 <input id = "zipcodes" type="number" placeholder= "zipcodes"/>
+                <button type="button" id="filterByZipcodesButton">Filter by Zipcodes</button>
             </div>
 
             <div class="download-button">
@@ -37,6 +39,7 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
             
         <script>
+            // loading all datasets as a list
             $(document).ready(function() {
                 $.ajax({
                     url: 'http://127.0.0.1:5000/home/',
@@ -52,6 +55,26 @@
                     }
                 });
             });
+    // user selects dataset
+    $('#dropdown').change(function() {
+    var dataset_name = $(this).val();
+
+    $.ajax({
+        url: 'http://127.0.0.1:5000/select_dataset',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            dataset_name: dataset_name
+        }),
+        success: function(data) {
+            console.log(data);
+        },
+        error: function(error) {
+            console.log(error);
+        }
+    });
+});
+
 
 $("#filterByYearButton").click(function() {
     var yearStart = $("#yearStart").val();
@@ -92,9 +115,6 @@ $("#filterByZipcodesButton").click(function() {
     });
 });
 
-</script>
-
-<script>
 $("#download-button").click(function() {
     $.ajax({
         url: 'http://127.0.0.1:5000/download_datafile/',

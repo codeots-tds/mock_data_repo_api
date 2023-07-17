@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, Response, session
+from flask import Flask, request, jsonify, Response, session, send_from_directory
 from flask_cors import CORS
 import pandas as pd
 import os
@@ -12,10 +12,12 @@ load_dotenv()
 
 
 app = Flask(__name__)
+app.config['SESSION_TYPE'] = 'filesystem'
 CORS(app)
 selected_dataset = None
 app.secret_key = os.getenv('SECRET_KEY')  # Replace this with a real secret key!
 
+download_file_path = '/home/ra-terminal/Desktop/work/nycdohmh/projects/mock_api/frontend_data_repo/static'
 
 @app.route('/home/', methods =["GET"])
 def get_all_files():
@@ -27,7 +29,6 @@ def select_dataset():
     data = request.get_json()
     dataset_name = data.get('dataset_name')
     selected_dataset = data_repo.select_datafile(dataset_name)
-    print('dataset found------')
     try:
         loaded_selected_dataset = data_repo.load_selected_datafile()
         print('dataset loaded-------')
@@ -39,8 +40,9 @@ def select_dataset():
     transformed_data = transformed_df.parse_year()
     transformed_data = transformed_df.convert_col_types()
 
-    transformed_data_filename = f"transformed_{dataset_name}"
-    transformed_data.to_csv(transformed_data_filename, index=False)
+    transformed_data_filename = f"transformed_{dataset_name}.csv"
+    # transformed_data.to_csv(transformed_data_filename, index=False)
+    transformed_data.to_csv(f'{download_file_path}/{transformed_data_filename}', index=False)
     # Store in session. session objects can only store data in str, int, json format, not complex objects like dataframes
     session['selected_dataset'] = transformed_data_filename
     return jsonify({"message" : "Dataset loaded successfully", "dataset_name": dataset_name})
@@ -56,14 +58,17 @@ def filter_years():
     if selected_dataset_filename is None:
         return jsonify({'error': 'No dataset selected'}), 400
     try:
-        selected_dataset = pd.read_csv(selected_dataset_filename)  # Load the DataFrame from the file
+        # selected_dataset = pd.read_csv(download_file_path/selected_dataset_filename)  # Load the DataFrame from the file
+        selected_dataset = pd.read_csv(f'{download_file_path}/{selected_dataset_filename}')
     except FileNotFoundError:
         return jsonify({'error': 'Dataset not found'}), 400
     filtered_data = Filter_Data(selected_dataset = selected_dataset)
     if len(year_data) == 2:
         filtered_year_df = filtered_data.filter_by_year(year_data[0], year_data[1])
+        filtered_year_df.to_csv(f'{download_file_path}/{selected_dataset_filename}', index=False)
     elif len(year_data) == 1:
         filtered_year_df = filtered_data.filter_by_year(year_data[0], None)
+        filtered_year_df.to_csv(f'{download_file_path}/{selected_dataset_filename}.csv', index=False)
     else:
         print('Error, invalid entry')
         return jsonify({'error': 'Invalid entry'})
@@ -78,12 +83,29 @@ def filter_zipcodes():
     if selected_dataset_filename is None:
         return jsonify({'error': 'No dataset selected'}), 400
     try:
-        selected_dataset = pd.read_csv(selected_dataset_filename)
+        selected_dataset = pd.read_csv(f'{download_file_path}/{selected_dataset_filename}')
     except FileNotFoundError:
         return jsonify({'error': 'Dataset not found'}), 400
     filtered_data = Filter_Data(selected_dataset = selected_dataset)
     filtered_df_zipcodes = filtered_data.filter_by_zipcode(zipcodes = zipcodes)
+    filtered_df_zipcodes.to_csv(f'{download_file_path}/{selected_dataset_filename}.csv', index=False)
     return jsonify(filtered_df_zipcodes.to_dict(orient='records'))
+
+@app.route('/download_datafile/', methods = ["GET"])
+def download_data():
+    global selected_dataset
+    selected_dataset_filename = session.get('selected_dataset')
+    print(session)
+    if selected_dataset_filename is None:
+        return jsonify({'error': 'No dataset selected'}), 400
+    try:
+        if os.path.isfile(f'{download_file_path}/{selected_dataset_filename}'):
+            print('download_file_path', download_file_path, '----------------')
+            print('selected_dataset_filename', selected_dataset_filename, '+++++++++++++')
+            return send_from_directory(directory=download_file_path, filename=f"{selected_dataset_filename}", as_attachment=True)
+        raise FileNotFoundError
+    except FileNotFoundError:
+        return jsonify({'error': 'Dataset not found'}), 400
 
 
 if __name__ == '__main__':
