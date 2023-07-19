@@ -11,6 +11,10 @@ class Transform_Mock_Data:
             if col in list(self.selected_dataset.columns):
                 self.selected_dataset[col] = pd.to_datetime(self.selected_dataset[col])
                 self.selected_dataset['year'] = self.selected_dataset[col].dt.year
+        self.selected_dataset['year'] = self.selected_dataset['year'].fillna(0)
+        self.selected_dataset['year'] = self.selected_dataset['year'].astype(int)
+        print(type(self.selected_dataset['year'][5]), '||||||||')
+        print(type(self.selected_dataset['year']), '||||||||')
         return self.selected_dataset
     
     def cols_to_lower(self):

@@ -77,8 +77,10 @@
 
 
 $("#filterByYearButton").click(function() {
-    var yearStart = $("#yearStart").val();
-    var yearEnd = $("#yearEnd").val();
+    // var yearStart = $("#yearStart").val();
+    // var yearEnd = $("#yearEnd").val();
+    var yearStart = parseInt($("#yearStart").val(), 10);
+    var yearEnd = parseInt($("#yearEnd").val(), 10);
 
     $.ajax({
         url: 'http://127.0.0.1:5000/select_years',

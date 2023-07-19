@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, Response, session, send_from_directory
 from flask_cors import CORS
 import pandas as pd
+import numpy as np
 import os
 
 from datasets_repo import data_repo
@@ -45,6 +46,7 @@ def select_dataset():
     transformed_data.to_csv(f'{download_file_path}/{transformed_data_filename}', index=False)
     # Store in session. session objects can only store data in str, int, json format, not complex objects like dataframes
     session['selected_dataset'] = transformed_data_filename
+    print(session['selected_dataset'])
     return jsonify({"message" : "Dataset loaded successfully", "dataset_name": dataset_name})
 
 
@@ -52,8 +54,11 @@ def select_dataset():
 def filter_years():
     global selected_dataset
     year_data = request.get_json()['years']
+    year_data = [int(x) for x in year_data]
+    print(type(year_data))
+    print(type(year_data[0]), type(year_data[1]))
+    print(year_data[0], year_data[1])
     selected_dataset_filename = session.get('selected_dataset')
-    print(session)  # Debug: print the session data
     # year_data = list(year_data.values())
     if selected_dataset_filename is None:
         return jsonify({'error': 'No dataset selected'}), 400
