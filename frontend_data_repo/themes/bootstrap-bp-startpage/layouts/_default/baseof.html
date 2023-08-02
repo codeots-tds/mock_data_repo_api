@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="{{ with .Site.LanguageCode }}{{ . }}{{ else }}en-US{{ end }}">
+    <meta charset="utf-8">
+    {{- partial "seo_schema" . -}}
+    <title>{{ block "title" . }}{{ .Site.Title }}{{ end }}</title>
+    {{- partial "head.html" . -}}
+
+    <head>
+        <link rel="stylesheet" type="text/css" href="/homepage.css">
+    </head>
+    
+    <body class="text-center" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+        <main>
+        <div id = "dropdown-container">
+            <select id="dropdown">
+            </select>
+        </div>
+   
+            <div id = 'years' class = 'input-group'>
+                <input id="yearStart" type="number" placeholder="Start Year" min="1900" max="2099" step="1" />
+                <input id="yearEnd" type="number" placeholder="End Year" min="1900" max="2099" step="1" />
+                <button type="button" id="filterByYearButton">Filter by Year</button>
+            </div>
+
+            <div id = 'zipcodes' class = 'input-group'>
+                <input id = "zipcodes" type="number" placeholder= "zipcodes"/>
+                <button type="button" id="filterByZipcodesButton">Filter by Zipcodes</button>
+            </div>
+
+            <div class="download-button">
+                <button type="button" class="button" id = 'download-button'>Download File</button>
+            </div>
+
+            
+            {{- block "main" . }}{{- end }}
+        </main>         
+        {{- partial "js.html" . -}}
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+            
+        <script>
+            // loading all datasets as a list
+            $(document).ready(function() {
+                $.ajax({
+                    url: 'http://127.0.0.1:5000/home/',
+                    method: 'GET',
+                    success: function(data) {
+                        for(var i=0; i<data.length; i++) {
+                            var option = new Option(data[i], data[i]);
+                            $('#dropdown').append($(option));
+                        }
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+    // user selects dataset
+    $('#dropdown').change(function() {
+    var dataset_name = $(this).val();
+
+    $.ajax({
+        url: 'http://127.0.0.1:5000/select_dataset',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            dataset_name: dataset_name
+        }),
+        success: function(data) {
+            console.log(data);
+        },
+        error: function(error) {
+            console.log(error);
+        }
+    });
+});
+
+
+$("#filterByYearButton").click(function() {
+    // var yearStart = $("#yearStart").val();
+    // var yearEnd = $("#yearEnd").val();
+    var yearStart = parseInt($("#yearStart").val(), 10);
+    var yearEnd = parseInt($("#yearEnd").val(), 10);
+
+    $.ajax({
+        url: 'http://127.0.0.1:5000/select_years',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            years: [yearStart, yearEnd]
+        }),
+        success: function(data) {
+            console.log(data);
+        },
+        error: function(error) {
+            console.log(error);
+        }
+    });
+});
+
+$("#filterByZipcodesButton").click(function() {
+    var zipcodes = $("#zipcodes").val();
+
+    $.ajax({
+        url: 'http://127.0.0.1:5000/select_zipcodes',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            zipcodes: zipcodes
+        }),
+        success: function(data) {
+            console.log(data);
+        },
+        error: function(error) {
+            console.log(error);
+        }
+    });
+});
+
+$("#download-button").click(function() {
+    $.ajax({
+        url: 'http://127.0.0.1:5000/download_datafile/',
+        method: 'GET',
+        processData: false, // add this line
+        responseType: 'blob',
+        success: function (data) {
+            var blob = new Blob([data], {type: 'application/csv'}); // add mime type here as per your data
+            var link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = "filename.csv";
+            link.click();
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR, textStatus, errorThrown);
+        }
+    });
+});
+</script>
+
+    </body>
+</html>
