@@ -60,7 +60,7 @@ class Read_Data:
     def run_query(self):
         try:
             if self.query:
-                print(f"Running the following SQL query: {self.query}", '<<<<<<<>>>>>>')
+                print(f"Running SQL query: {self.query}", '<<<<<<<>>>>>>')
                 self.cur.execute(self.query)
                 rows = self.cur.fetchall()
                 col_names = [desc[0] for desc in self.cur.description]

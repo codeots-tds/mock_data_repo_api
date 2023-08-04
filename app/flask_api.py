@@ -88,7 +88,7 @@ def download_data():
     if filtered_data is not None:
         filtered_data.to_csv(f"{file_dir_path}/{filename}", index=False)
     else:
-        print("Filtered data is None. No CSV file was created.")
+        print("Your filtered data table returned None. No CSV file was created.")
     return send_from_directory(file_dir_path, filename, as_attachment=True)
 
 if __name__ == '__main__':
