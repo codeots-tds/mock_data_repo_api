@@ -8,6 +8,7 @@ pandas = "*"
 flask = "*"
 flask-cors = "*"
 python-dotenv = "*"
+redis = "*"
 
 [dev-packages]
 

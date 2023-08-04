@@ -2,13 +2,15 @@ import sys
 sys.path.append("..")
 import pandas as pd
 import os
-from data_db.seed import conn, cur
+import sqlite3
+# from data_db.seed import conn, cur
 
+db_path = './data_db/data_repo.db'
 
 class Read_Data:
-    def __init__(self, conn, cur):
-        self.conn = conn
-        self.cur = cur
+    def __init__(self, db_conn):
+        self.conn = db_conn
+        self.cur = self.conn.cursor()
         self.query = "SELECT * FROM {}"
         self.selected_table = None
         self.years = None
@@ -16,8 +18,8 @@ class Read_Data:
         pass
     
     def get_all_table_names(self):
-        self.query = "SELECT name FROM sqlite_master WHERE type='table';"
-        self.cur.execute(self.query)
+        self.query_all_tables = "SELECT name FROM sqlite_master WHERE type='table';"
+        self.cur.execute(self.query_all_tables)
         tables = self.cur.fetchall()
         tables = [x[0] for x in tables]
         return tables
@@ -27,6 +29,8 @@ class Read_Data:
         tables = self.get_all_table_names()
         if self.selected_table in tables:
             print(f'{self.selected_table} exists in the database!')
+            self.years = None
+            self.zipcodes_list = None
             return self.selected_table
     
     def filter_by_year(self, year1, year2):
@@ -53,10 +57,10 @@ class Read_Data:
             print("No table selected.")
 
 
-        
     def run_query(self):
         try:
             if self.query:
+                print(f"Running the following SQL query: {self.query}", '<<<<<<<>>>>>>')
                 self.cur.execute(self.query)
                 rows = self.cur.fetchall()
                 col_names = [desc[0] for desc in self.cur.description]
@@ -70,11 +74,14 @@ class Read_Data:
     
 
 if __name__ == '__main__':
-    read_data = Read_Data(conn, cur)
+    db_conn = sqlite3.connect(db_path)
+    read_data = Read_Data(db_conn)
+    print(read_data.get_all_table_names(), '-----------------------')
     read_data.select_table('dogbite_table')
     read_data.filter_by_year(2015, 2017)
     read_data.filter_by_zipcode([11220, 11234, 11207])
     read_data.build_query() 
     df = read_data.run_query()
     print(df.head(10))
+    read_data.conn.close()
     pass
