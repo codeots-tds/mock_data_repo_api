@@ -74,14 +74,14 @@ class Read_Data:
     
 
 if __name__ == '__main__':
-    db_conn = sqlite3.connect(db_path)
-    read_data = Read_Data(db_conn)
-    print(read_data.get_all_table_names(), '-----------------------')
-    read_data.select_table('dogbite_table')
-    read_data.filter_by_year(2015, 2017)
-    read_data.filter_by_zipcode([11220, 11234, 11207])
-    read_data.build_query() 
-    df = read_data.run_query()
-    print(df.head(10))
-    read_data.conn.close()
+    # db_conn = sqlite3.connect(db_path)
+    # read_data = Read_Data(db_conn)
+    # print(read_data.get_all_table_names(), '-----------------------')
+    # read_data.select_table('dogbite_table')
+    # read_data.filter_by_year(2015, 2017)
+    # read_data.filter_by_zipcode([11220, 11234, 11207])
+    # read_data.build_query() 
+    # df = read_data.run_query()
+    # print(df.head(10))
+    # read_data.conn.close()
     pass
